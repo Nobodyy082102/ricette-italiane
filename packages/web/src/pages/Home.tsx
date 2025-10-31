@@ -1,6 +1,7 @@
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Colors } from '@ricette-italiane/shared';
-import { FaStar, FaClock, FaFire } from 'react-icons/fa';
+import { Colors, getRecipeOfTheDay, getPopularRecipes, formattaTempo, getDifficoltaBadge } from '@ricette-italiane/shared';
+import { FaStar, FaClock, FaFire, FaHeart } from 'react-icons/fa';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -76,6 +77,22 @@ const RecipeImage = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 4rem;
+  position: relative;
+`;
+
+const FavoritesBadge = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: ${Colors.rossoPrimario};
 `;
 
 const RecipeInfo = styled.div`
@@ -86,6 +103,17 @@ const RecipeTitle = styled.h3`
   font-size: 1.2rem;
   margin: 0 0 10px 0;
   color: ${Colors.testoChiaro};
+`;
+
+const RecipeDescription = styled.p`
+  font-size: 0.9rem;
+  color: ${Colors.testoSecondario};
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 `;
 
 const RecipeMeta = styled.div`
@@ -133,17 +161,23 @@ const SearchBar = styled.input`
   }
 `;
 
-// Dati mock per il prototipo
-const mockRecipes = [
-  { id: '1', title: 'Pasta alla Carbonara', difficulty: 'media', time: 30, emoji: '🍝' },
-  { id: '2', title: 'Pizza Margherita', difficulty: 'media', time: 90, emoji: '🍕' },
-  { id: '3', title: 'Tiramisù', difficulty: 'facile', time: 40, emoji: '🍰' },
-  { id: '4', title: 'Risotto alla Milanese', difficulty: 'media', time: 45, emoji: '🍚' },
-  { id: '5', title: 'Lasagne alla Bolognese', difficulty: 'difficile', time: 120, emoji: '🥘' },
-  { id: '6', title: 'Panna Cotta', difficulty: 'facile', time: 20, emoji: '🍮' },
-];
+const Rating = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  color: ${Colors.warning};
+`;
 
 export default function Home() {
+  const navigate = useNavigate();
+  const ricettaDelGiorno = getRecipeOfTheDay();
+  const ricettePopolari = getPopularRecipes(6);
+
+  const handleRecipeClick = (id: string) => {
+    navigate(`/recipe/${id}`);
+  };
+
   return (
     <Container>
       <Header>
@@ -153,27 +187,42 @@ export default function Home() {
 
       <SearchBar placeholder="Cerca ricette, ingredienti..." />
 
-      <Section>
-        <SectionTitle>
-          <FaFire />
-          Ricetta del Giorno
-        </SectionTitle>
-        <RecipeGrid>
-          <RecipeCard>
-            <RecipeImage>🍝</RecipeImage>
-            <RecipeInfo>
-              <RecipeTitle>Pasta alla Carbonara</RecipeTitle>
-              <RecipeMeta>
-                <MetaItem>
-                  <FaClock />
-                  30 min
-                </MetaItem>
-                <DifficultyBadge $level="media">⭐⭐ Media</DifficultyBadge>
-              </RecipeMeta>
-            </RecipeInfo>
-          </RecipeCard>
-        </RecipeGrid>
-      </Section>
+      {ricettaDelGiorno && (
+        <Section>
+          <SectionTitle>
+            <FaFire />
+            Ricetta del Giorno
+          </SectionTitle>
+          <RecipeGrid>
+            <RecipeCard onClick={() => handleRecipeClick(ricettaDelGiorno.id)}>
+              <RecipeImage>
+                {ricettaDelGiorno.fotoUrl}
+                <FavoritesBadge>
+                  <FaHeart /> {ricettaDelGiorno.numeroPreferiti}
+                </FavoritesBadge>
+              </RecipeImage>
+              <RecipeInfo>
+                <RecipeTitle>{ricettaDelGiorno.titolo}</RecipeTitle>
+                <RecipeDescription>{ricettaDelGiorno.descrizione}</RecipeDescription>
+                <RecipeMeta>
+                  <MetaItem>
+                    <FaClock />
+                    {formattaTempo(ricettaDelGiorno.tempoTotale)}
+                  </MetaItem>
+                  <Rating>
+                    <FaStar /> {ricettaDelGiorno.valutazioneMedia.toFixed(1)}
+                  </Rating>
+                </RecipeMeta>
+                <div style={{ marginTop: '10px' }}>
+                  <DifficultyBadge $level={ricettaDelGiorno.difficolta}>
+                    {getDifficoltaBadge(ricettaDelGiorno.difficolta)}
+                  </DifficultyBadge>
+                </div>
+              </RecipeInfo>
+            </RecipeCard>
+          </RecipeGrid>
+        </Section>
+      )}
 
       <Section>
         <SectionTitle>
@@ -181,22 +230,31 @@ export default function Home() {
           Ricette Popolari
         </SectionTitle>
         <RecipeGrid>
-          {mockRecipes.map(recipe => (
-            <RecipeCard key={recipe.id}>
-              <RecipeImage>{recipe.emoji}</RecipeImage>
+          {ricettePopolari.map(recipe => (
+            <RecipeCard key={recipe.id} onClick={() => handleRecipeClick(recipe.id)}>
+              <RecipeImage>
+                {recipe.fotoUrl}
+                <FavoritesBadge>
+                  <FaHeart /> {recipe.numeroPreferiti}
+                </FavoritesBadge>
+              </RecipeImage>
               <RecipeInfo>
-                <RecipeTitle>{recipe.title}</RecipeTitle>
+                <RecipeTitle>{recipe.titolo}</RecipeTitle>
+                <RecipeDescription>{recipe.descrizione}</RecipeDescription>
                 <RecipeMeta>
                   <MetaItem>
                     <FaClock />
-                    {recipe.time} min
+                    {formattaTempo(recipe.tempoTotale)}
                   </MetaItem>
-                  <DifficultyBadge $level={recipe.difficulty}>
-                    {recipe.difficulty === 'facile' ? '⭐ Facile' :
-                     recipe.difficulty === 'media' ? '⭐⭐ Media' :
-                     '⭐⭐⭐ Difficile'}
-                  </DifficultyBadge>
+                  <Rating>
+                    <FaStar /> {recipe.valutazioneMedia.toFixed(1)}
+                  </Rating>
                 </RecipeMeta>
+                <div style={{ marginTop: '10px' }}>
+                  <DifficultyBadge $level={recipe.difficolta}>
+                    {getDifficoltaBadge(recipe.difficolta)}
+                  </DifficultyBadge>
+                </div>
               </RecipeInfo>
             </RecipeCard>
           ))}

@@ -220,18 +220,11 @@ export default function CookingTimer() {
     }
   }, []);
 
+  // Effetto per gestire il countdown
   useEffect(() => {
     if (isRunning && totalSeconds > 0) {
       intervalRef.current = window.setInterval(() => {
-        setTotalSeconds(prev => {
-          const newValue = prev - 1;
-          if (newValue <= 0) {
-            setIsRunning(false);
-            setTimeout(() => playAlarm(), 0);
-            return 0;
-          }
-          return newValue;
-        });
+        setTotalSeconds(prev => Math.max(0, prev - 1));
       }, 1000);
     }
 
@@ -241,7 +234,15 @@ export default function CookingTimer() {
         intervalRef.current = null;
       }
     };
-  }, [isRunning, playAlarm]);
+  }, [isRunning, totalSeconds]);
+
+  // Effetto separato per gestire quando il timer raggiunge 0
+  useEffect(() => {
+    if (isRunning && totalSeconds === 0) {
+      setIsRunning(false);
+      playAlarm();
+    }
+  }, [totalSeconds, isRunning, playAlarm]);
 
   useEffect(() => {
     const mins = Math.floor(totalSeconds / 60);

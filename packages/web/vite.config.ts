@@ -5,6 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/ricette-italiane/', // Per GitHub Pages
   resolve: {
     alias: {
       '@ricette-italiane/shared': path.resolve(__dirname, '../shared/index.ts'),

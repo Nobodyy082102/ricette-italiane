@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Colors, mockRecipes, TipoRicetta, DifficoltaRicetta, RegioneItaliana } from '@ricette-italiane/shared';
 import { FaUtensils, FaClock, FaStar } from 'react-icons/fa';
+import { Colors } from '../../../shared/src/constants/colors';
+import { mockRecipes } from '../../../shared/src/data/mockRecipes';
+import { TipoRicetta, DifficoltaRicetta, RegioneItaliana } from '../../../shared/src/types/recipe';
 
 const Container = styled.div`
   max-width: 1200px;

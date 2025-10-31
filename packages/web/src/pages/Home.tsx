@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Colors, getRecipeOfTheDay, getPopularRecipes, formattaTempo, getDifficoltaBadge } from '@ricette-italiane/shared';
 import { FaStar, FaClock, FaFire, FaHeart } from 'react-icons/fa';
+import { Colors } from '../../../shared/src/constants/colors';
+import { getRecipeOfTheDay, getPopularRecipes } from '../../../shared/src/data/mockRecipes';
+import { formattaTempo, getDifficoltaBadge } from '../../../shared/src/utils/recipeHelpers';
 
 const Container = styled.div`
   max-width: 1200px;

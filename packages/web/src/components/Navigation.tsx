@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaHome, FaList, FaHeart, FaSearch } from 'react-icons/fa';
-import { Colors } from '@ricette-italiane/shared';
+import { Colors } from '../../../shared/src/constants/colors';
 
 const Nav = styled.nav`
   position: fixed;

@@ -2,15 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaClock, FaUser, FaStar, FaHeart, FaShoppingCart, FaArrowLeft, FaPlay, FaCheck } from 'react-icons/fa';
-import {
-  Colors,
-  getRecipeById,
-  formattaTempo,
-  getDifficoltaBadge,
-  ricalcolaIngredienti,
-  creaListaSpesa,
-  Ricetta
-} from '@ricette-italiane/shared';
+import { Colors } from '../../../shared/src/constants/colors';
+import { getRecipeById } from '../../../shared/src/data/mockRecipes';
+import { formattaTempo, getDifficoltaBadge, ricalcolaIngredienti, creaListaSpesa } from '../../../shared/src/utils/recipeHelpers';
+import type { Ricetta } from '../../../shared/src/types/recipe';
 
 const Container = styled.div`
   max-width: 1200px;

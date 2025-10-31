@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Colors, getRecipeById, formattaTempo } from '@ricette-italiane/shared';
 import { FaClock, FaStar, FaHeart } from 'react-icons/fa';
+import { Colors } from '../../../shared/src/constants/colors';
+import { getRecipeById } from '../../../shared/src/data/mockRecipes';
+import { formattaTempo } from '../../../shared/src/utils/recipeHelpers';
 
 const Container = styled.div`
   max-width: 1200px;

@@ -171,22 +171,42 @@ export default function CookingTimer() {
   const playAlarm = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      // Primo beep
+      const oscillator1 = audioContext.createOscillator();
+      const gainNode1 = audioContext.createGain();
 
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      oscillator1.connect(gainNode1);
+      gainNode1.connect(audioContext.destination);
+      oscillator1.frequency.value = 800;
+      oscillator1.type = 'sine';
+      gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
 
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
+      oscillator1.start(audioContext.currentTime);
+      oscillator1.stop(audioContext.currentTime + 0.3);
 
+      // Secondo beep (dopo 400ms) - NUOVO oscillator
       setTimeout(() => {
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
+        try {
+          const oscillator2 = audioContext.createOscillator();
+          const gainNode2 = audioContext.createGain();
+
+          oscillator2.connect(gainNode2);
+          gainNode2.connect(audioContext.destination);
+          oscillator2.frequency.value = 800;
+          oscillator2.type = 'sine';
+          gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+
+          oscillator2.start(audioContext.currentTime);
+          oscillator2.stop(audioContext.currentTime + 0.3);
+
+          // Cleanup: chiudi l'audio context dopo il secondo beep
+          setTimeout(() => {
+            audioContext.close().catch(err => console.log('AudioContext already closed', err));
+          }, 500);
+        } catch (err) {
+          console.error('Error in second beep:', err);
+        }
       }, 400);
 
       if ('Notification' in window && Notification.permission === 'granted') {

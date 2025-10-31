@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
-import { FaClock, FaPlay, FaPause, FaStop, FaBell } from 'react-icons/fa';
-import { Colors } from '../../../shared/src/constants/colors';
+import { FaClock, FaPlay, FaPause, FaStop } from 'react-icons/fa';
 
 const Container = styled.div`
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
@@ -44,6 +43,7 @@ const ControlsRow = styled.div`
   gap: 15px;
   justify-content: center;
   margin-bottom: 25px;
+  flex-wrap: wrap;
 `;
 
 const ControlButton = styled.button<{ $variant?: 'start' | 'pause' | 'stop' }>`
@@ -166,172 +166,199 @@ export default function CookingTimer() {
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
+  const playAlarm = useCallback(() => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      setTimeout(() => {
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      }, 400);
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('⏰ Timer Scaduto!', {
+          body: 'Il tempo di cottura è terminato!',
+          icon: '⏰'
+        });
+      }
+    } catch (error) {
+      console.error('Error playing alarm:', error);
+    }
+  }, []);
 
   useEffect(() => {
     if (isRunning && totalSeconds > 0) {
-      intervalRef.current = setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         setTotalSeconds(prev => {
-          if (prev <= 1) {
-            playAlarm();
+          const newValue = prev - 1;
+          if (newValue <= 0) {
             setIsRunning(false);
+            setTimeout(() => playAlarm(), 0);
             return 0;
           }
-          return prev - 1;
+          return newValue;
         });
       }, 1000);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
     }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [isRunning, totalSeconds]);
+  }, [isRunning, playAlarm]);
 
-  const playAlarm = () => {
-    // Usa l'API Web Audio per creare un beep
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+  useEffect(() => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    setMinutes(mins);
+    setSeconds(secs);
+  }, [totalSeconds]);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 1);
-
-    // Notifica browser se supportata
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('⏰ Timer Scaduto!', {
-        body: 'Il tempo di cottura è terminato!',
-        icon: '⏰'
-      });
-    }
-  };
-
-  const startTimer = () => {
+  const handleStart = () => {
     if (totalSeconds > 0) {
       setIsRunning(true);
       setIsPaused(false);
-
-      // Richiedi permesso notifiche
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
     }
   };
 
-  const pauseTimer = () => {
+  const handlePause = () => {
     setIsRunning(false);
     setIsPaused(true);
   };
 
-  const stopTimer = () => {
+  const handleStop = () => {
     setIsRunning(false);
     setIsPaused(false);
     setTotalSeconds(0);
   };
 
-  const setQuickTimer = (mins: number) => {
+  const handleQuickTime = (mins: number) => {
     setTotalSeconds(mins * 60);
     setIsRunning(false);
     setIsPaused(false);
   };
 
-  const setCustomTimer = () => {
-    const total = minutes * 60 + seconds;
-    if (total > 0) {
-      setTotalSeconds(total);
-      setIsRunning(false);
-      setIsPaused(false);
+  const handleCustomTime = () => {
+    const mins = parseInt((document.getElementById('custom-minutes') as HTMLInputElement)?.value || '0');
+    const secs = parseInt((document.getElementById('custom-seconds') as HTMLInputElement)?.value || '0');
+    setTotalSeconds(mins * 60 + secs);
+    setIsRunning(false);
+    setIsPaused(false);
+  };
+
+  const requestNotificationPermission = () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   };
 
-  const displayMinutes = Math.floor(totalSeconds / 60);
-  const displaySeconds = totalSeconds % 60;
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  const formatTime = (mins: number, secs: number) => {
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const getStatus = (): 'idle' | 'running' | 'paused' | 'finished' => {
-    if (totalSeconds === 0 && !isRunning) return 'idle';
+    if (totalSeconds === 0 && !isRunning && isPaused) return 'finished';
     if (isRunning) return 'running';
     if (isPaused) return 'paused';
-    if (totalSeconds === 0 && isPaused) return 'finished';
     return 'idle';
-  };
-
-  const getStatusText = () => {
-    switch (getStatus()) {
-      case 'running': return '⏱️ In corso...';
-      case 'paused': return '⏸️ In pausa';
-      case 'finished': return '🔔 Completato!';
-      default: return '⏰ Imposta un timer';
-    }
   };
 
   return (
     <Container>
       <Title>
-        <FaClock /> Timer di Cottura
+        <FaClock />
+        Timer di Cottura
       </Title>
 
       <TimerDisplay>
         <TimeText $isActive={isRunning}>
-          {String(displayMinutes).padStart(2, '0')}:{String(displaySeconds).padStart(2, '0')}
+          {formatTime(minutes, seconds)}
         </TimeText>
         <StatusBadge $status={getStatus()}>
-          {getStatusText()}
+          {getStatus() === 'running' && '⏱️ In esecuzione'}
+          {getStatus() === 'paused' && '⏸️ In pausa'}
+          {getStatus() === 'finished' && '✅ Completato'}
+          {getStatus() === 'idle' && '💤 Pronto'}
         </StatusBadge>
       </TimerDisplay>
 
       <ControlsRow>
-        {!isRunning ? (
-          <ControlButton $variant="start" onClick={startTimer} disabled={totalSeconds === 0}>
-            <FaPlay /> Avvia
-          </ControlButton>
-        ) : (
-          <ControlButton $variant="pause" onClick={pauseTimer}>
-            <FaPause /> Pausa
-          </ControlButton>
-        )}
-        <ControlButton $variant="stop" onClick={stopTimer} disabled={totalSeconds === 0 && !isPaused}>
-          <FaStop /> Reset
+        <ControlButton
+          $variant="start"
+          onClick={handleStart}
+          disabled={isRunning || totalSeconds === 0}
+        >
+          <FaPlay />
+          {isPaused ? 'Riprendi' : 'Avvia'}
+        </ControlButton>
+
+        <ControlButton
+          $variant="pause"
+          onClick={handlePause}
+          disabled={!isRunning}
+        >
+          <FaPause />
+          Pausa
+        </ControlButton>
+
+        <ControlButton
+          $variant="stop"
+          onClick={handleStop}
+          disabled={totalSeconds === 0 && !isRunning}
+        >
+          <FaStop />
+          Stop
         </ControlButton>
       </ControlsRow>
 
       <QuickTimers>
-        <QuickTimer onClick={() => setQuickTimer(1)}>1 min</QuickTimer>
-        <QuickTimer onClick={() => setQuickTimer(3)}>3 min</QuickTimer>
-        <QuickTimer onClick={() => setQuickTimer(5)}>5 min</QuickTimer>
-        <QuickTimer onClick={() => setQuickTimer(10)}>10 min</QuickTimer>
-        <QuickTimer onClick={() => setQuickTimer(15)}>15 min</QuickTimer>
-        <QuickTimer onClick={() => setQuickTimer(20)}>20 min</QuickTimer>
+        {[1, 3, 5, 10, 15, 20].map(mins => (
+          <QuickTimer key={mins} onClick={() => handleQuickTime(mins)}>
+            {mins} min
+          </QuickTimer>
+        ))}
       </QuickTimers>
 
       <CustomTimeInput>
         <TimeInput
+          id="custom-minutes"
           type="number"
           min="0"
-          max="99"
+          max="59"
           placeholder="Min"
-          value={minutes || ''}
-          onChange={(e) => setMinutes(Math.max(0, Math.min(99, parseInt(e.target.value) || 0)))}
+          defaultValue="0"
         />
         <TimeInput
+          id="custom-seconds"
           type="number"
           min="0"
           max="59"
           placeholder="Sec"
-          value={seconds || ''}
-          onChange={(e) => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+          defaultValue="0"
         />
-        <SetButton onClick={setCustomTimer}>Imposta</SetButton>
+        <SetButton onClick={handleCustomTime}>
+          Imposta
+        </SetButton>
       </CustomTimeInput>
     </Container>
   );

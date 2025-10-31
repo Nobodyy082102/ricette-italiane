@@ -1,0 +1,33 @@
+{
+  "name": "ricette-italiane-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App di ricette italiane - Mobile & Web",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "web": "npm run dev --workspace=packages/web",
+    "mobile": "npm run start --workspace=packages/mobile",
+    "build:web": "npm run build --workspace=packages/web",
+    "build:mobile": "npm run build --workspace=packages/mobile",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [
+    "ricette",
+    "cucina-italiana",
+    "react-native",
+    "react",
+    "firebase"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.2.0"
+  }
+}

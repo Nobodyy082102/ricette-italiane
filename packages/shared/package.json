@@ -1,0 +1,15 @@
+{
+  "name": "@ricette-italiane/shared",
+  "version": "1.0.0",
+  "description": "Codice condiviso tra mobile e web",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.2.0"
+  }
+}

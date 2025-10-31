@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaHome, FaList, FaHeart, FaSearch } from 'react-icons/fa';
+import { FaHome, FaList, FaHeart, FaSearch, FaShoppingCart, FaTrophy } from 'react-icons/fa';
 import { Colors } from '../../../shared/src/constants/colors';
 
 const Nav = styled.nav`
@@ -49,7 +49,9 @@ const navItems = [
   { path: '/', icon: FaHome, label: 'Home' },
   { path: '/categories', icon: FaList, label: 'Categorie' },
   { path: '/search', icon: FaSearch, label: 'Cerca' },
+  { path: '/shopping-list', icon: FaShoppingCart, label: 'Spesa' },
   { path: '/favorites', icon: FaHeart, label: 'Preferiti' },
+  { path: '/dashboard', icon: FaTrophy, label: 'Profilo' },
 ];
 
 export default function Navigation() {

@@ -1,17 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import styled, { ThemeProvider } from 'styled-components';
-import { LightTheme } from '@ricette-italiane/shared';
+import styled from 'styled-components';
 import Home from './pages/Home';
 import RecipeDetail from './pages/RecipeDetail';
 import Categories from './pages/Categories';
 import Favorites from './pages/Favorites';
 import Search from './pages/Search';
+import ShoppingList from './pages/ShoppingList';
+import Dashboard from './pages/Dashboard';
+import Suggestions from './pages/Suggestions';
+import ItalyMap from './pages/ItalyMap';
 import Navigation from './components/Navigation';
 
 const AppContainer = styled.div`
   min-height: 100vh;
-  background-color: ${props => props.theme.background};
-  color: ${props => props.theme.text};
+  background-color: #F8F9FA;
+  color: #212529;
 `;
 
 const Content = styled.main`
@@ -20,22 +23,24 @@ const Content = styled.main`
 
 function App() {
   return (
-    <ThemeProvider theme={LightTheme}>
-      <Router>
-        <AppContainer>
-          <Content>
-            <Routes>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AppContainer>
+        <Content>
+          <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/recipe/:id" element={<RecipeDetail />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/shopping-list" element={<ShoppingList />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/suggestions" element={<Suggestions />} />
+              <Route path="/italy-map" element={<ItalyMap />} />
             </Routes>
           </Content>
           <Navigation />
         </AppContainer>
       </Router>
-    </ThemeProvider>
   );
 }
 

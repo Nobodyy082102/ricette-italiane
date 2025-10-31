@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaStar, FaClock, FaFire, FaHeart } from 'react-icons/fa';
+import { FaStar, FaClock, FaFire, FaHeart, FaLightbulb, FaMapMarkedAlt } from 'react-icons/fa';
 import { Colors } from '../../../shared/src/constants/colors';
 import { getRecipeOfTheDay, getPopularRecipes } from '../../../shared/src/data/mockRecipes';
 import { formattaTempo, getDifficoltaBadge } from '../../../shared/src/utils/recipeHelpers';
@@ -171,6 +171,56 @@ const Rating = styled.div`
   color: ${Colors.warning};
 `;
 
+const WidgetsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+`;
+
+const Widget = styled.div<{ $gradient: string }>`
+  background: ${props => props.$gradient};
+  border-radius: 20px;
+  padding: 30px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  }
+`;
+
+const WidgetTitle = styled.h2`
+  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  svg {
+    font-size: 2.2rem;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+`;
+
+const WidgetSubtitle = styled.p`
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.95;
+`;
+
 export default function Home() {
   const navigate = useNavigate();
   const ricettaDelGiorno = getRecipeOfTheDay();
@@ -178,6 +228,14 @@ export default function Home() {
 
   const handleRecipeClick = (id: string) => {
     navigate(`/recipe/${id}`);
+  };
+
+  const handleSuggestionsClick = () => {
+    navigate('/suggestions');
+  };
+
+  const handleItalyMapClick = () => {
+    navigate('/italy-map');
   };
 
   return (
@@ -188,6 +246,34 @@ export default function Home() {
       </Header>
 
       <SearchBar placeholder="Cerca ricette, ingredienti..." />
+
+      <WidgetsGrid>
+        <Widget
+          $gradient={`linear-gradient(135deg, ${Colors.verdePrimario} 0%, ${Colors.verdeScuro} 100%)`}
+          onClick={handleSuggestionsClick}
+        >
+          <WidgetTitle>
+            <FaLightbulb />
+            Cosa Cucino Oggi?
+          </WidgetTitle>
+          <WidgetSubtitle>
+            Suggerimenti intelligenti basati su giorno, ora, stagione e meteo 🌤️
+          </WidgetSubtitle>
+        </Widget>
+
+        <Widget
+          $gradient={`linear-gradient(135deg, ${Colors.rossoPrimario} 0%, #C41E3A 100%)`}
+          onClick={handleItalyMapClick}
+        >
+          <WidgetTitle>
+            <FaMapMarkedAlt />
+            Mappa Italia
+          </WidgetTitle>
+          <WidgetSubtitle>
+            Esplora le ricette tradizionali regione per regione 🇮🇹
+          </WidgetSubtitle>
+        </Widget>
+      </WidgetsGrid>
 
       {ricettaDelGiorno && (
         <Section>

@@ -48,11 +48,39 @@ export enum RegioneItaliana {
   VENETO = 'veneto'
 }
 
+export enum Stagione {
+  PRIMAVERA = 'primavera',
+  ESTATE = 'estate',
+  AUTUNNO = 'autunno',
+  INVERNO = 'inverno',
+  TUTTO_ANNO = 'tutto_anno'
+}
+
+export enum OccasioneSpeciale {
+  NATALE = 'natale',
+  CAPODANNO = 'capodanno',
+  PASQUA = 'pasqua',
+  FERRAGOSTO = 'ferragosto',
+  CARNEVALE = 'carnevale',
+  DOMENICA = 'domenica',
+  FESTA_COMPLEANNO = 'festa_compleanno'
+}
+
+export interface SostituzioneIngrediente {
+  ingredienteOriginale: string;
+  sostituto: string;
+  motivo: string; // es: "Alternativa vegana", "Più economico", "Intolleranza al lattosio"
+  fattoreMoltiplicazione?: number; // se le quantità cambiano
+}
+
 export interface Ingrediente {
   nome: string;
   quantita: number;
   unita: string; // es: "g", "ml", "pz", "cucchiai", "cucchiaini"
   note?: string;
+  stagione?: Stagione; // quando è di stagione questo ingrediente
+  costoMedio?: number; // costo in euro
+  sostituzioni?: SostituzioneIngrediente[]; // alternative per questo ingrediente
 }
 
 export interface PassoProcedimento {
@@ -79,6 +107,33 @@ export interface Commento {
   testo: string;
   valutazione: number; // 1-5 stelle
   dataCreazione: Date;
+}
+
+export interface AbbinamentoVino {
+  nome: string;
+  tipo: 'rosso' | 'bianco' | 'rosato' | 'spumante';
+  regione: RegioneItaliana;
+  denominazione?: string; // es: "Chianti DOCG", "Barolo DOCG"
+  perche: string; // spiegazione dell'abbinamento
+  temperaturaServizio: string; // es: "16-18°C"
+}
+
+export interface ConsiglioDellaNonna {
+  testo: string;
+  categoria: 'tecnica' | 'ingrediente' | 'conservazione' | 'segreto' | 'storia';
+}
+
+export interface StoriaPiatto {
+  origine: string; // breve storia dell'origine
+  curiosita: string[]; // aneddoti interessanti
+  variantiRegionali?: string; // varianti in altre regioni
+}
+
+export interface BadgeRicetta {
+  id: string;
+  nome: string; // es: "Master della Pasta", "Re della Pizza"
+  descrizione: string;
+  icona: string; // emoji o URL icona
 }
 
 export interface Ricetta {
@@ -125,4 +180,32 @@ export interface Ricetta {
   visualizzazioni: number;
   isPopolari?: boolean;
   isRicettaDelGiorno?: boolean;
+
+  // 🍷 NUOVE FEATURE
+  // 1. Abbinamenti Vini
+  abbinamentoVini?: AbbinamentoVino[];
+
+  // 2. Consigli della Nonna
+  consigliNonna?: ConsiglioDellaNonna[];
+
+  // 3. Storia del Piatto
+  storia?: StoriaPiatto;
+
+  // 4. Stagionalità
+  stagioneMigliore?: Stagione[];
+
+  // 5. Costo
+  costoTotaleStimato?: number; // in euro
+
+  // 6. Occasioni Speciali
+  occasioniSpeciali?: OccasioneSpeciale[];
+
+  // 7. Badge associati
+  badgeAssociati?: BadgeRicetta[];
+
+  // 8. Difficoltà skills richieste
+  skillsRichieste?: string[]; // es: ["impastare", "friggere", "brasare"]
+
+  // 9. Sostituzioni Ingredienti
+  sostituzioniIngredienti?: SostituzioneIngrediente[];
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaClock, FaUser, FaStar, FaHeart, FaShoppingCart, FaArrowLeft, FaPlay, FaCheck } from 'react-icons/fa';
@@ -6,6 +6,13 @@ import { Colors } from '../../../shared/src/constants/colors';
 import { getRecipeById } from '../../../shared/src/data/mockRecipes';
 import { formattaTempo, getDifficoltaBadge, ricalcolaIngredienti, creaListaSpesa } from '../../../shared/src/utils/recipeHelpers';
 import type { Ricetta } from '../../../shared/src/types/recipe';
+import WinePairings from '../components/WinePairings';
+import GrandmaTips from '../components/GrandmaTips';
+import DishHistory from '../components/DishHistory';
+import CookingTimer from '../components/CookingTimer';
+import CookingMode from '../components/CookingMode';
+import RecipeInfoBadges from '../components/RecipeInfoBadges';
+import IngredientSubstitutions from '../components/IngredientSubstitutions';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -383,6 +390,7 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState<Ricetta | undefined>();
   const [porzioni, setPortions] = useState(4);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showCookingMode, setShowCookingMode] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -390,9 +398,26 @@ export default function RecipeDetail() {
       setRecipe(foundRecipe);
       if (foundRecipe) {
         setPortions(foundRecipe.porzioni);
+
+        // Controlla se la ricetta è già nei preferiti
+        const saved = localStorage.getItem('favorites');
+        const favorites: string[] = saved ? JSON.parse(saved) : [];
+        setIsFavorite(favorites.includes(foundRecipe.id));
       }
     }
   }, [id]);
+
+  // Ricalcola ingredienti quando cambiano le porzioni
+  // IMPORTANTE: useMemo deve essere chiamato prima di qualsiasi return anticipato
+  const ingredientiRicalcolati = useMemo(() => {
+    if (!recipe) return [];
+    console.log('🔄 Ricalcolo ingredienti per', porzioni, 'porzioni');
+    return ricalcolaIngredienti(
+      recipe.ingredienti,
+      recipe.porzioni,
+      porzioni
+    );
+  }, [recipe, porzioni]);
 
   if (!recipe) {
     return (
@@ -405,22 +430,58 @@ export default function RecipeDetail() {
     );
   }
 
-  const ingredientiRicalcolati = ricalcolaIngredienti(
-    recipe.ingredienti,
-    recipe.porzioni,
-    porzioni
-  );
-
   const handleAddToFavorites = () => {
-    setIsFavorite(!isFavorite);
-    // TODO: salvare in localStorage
+    if (!recipe) {
+      console.error('❌ Ricetta non trovata');
+      return;
+    }
+
+    // Carica preferiti esistenti da localStorage
+    const saved = localStorage.getItem('favorites');
+    const favorites: string[] = saved ? JSON.parse(saved) : [];
+
+    if (isFavorite) {
+      // Rimuovi dai preferiti
+      const newFavorites = favorites.filter(id => id !== recipe.id);
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      setIsFavorite(false);
+      console.log('💔 Rimossa dai preferiti:', recipe.titolo);
+    } else {
+      // Aggiungi ai preferiti
+      const newFavorites = [...favorites, recipe.id];
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      setIsFavorite(true);
+      console.log('❤️ Aggiunta ai preferiti:', recipe.titolo);
+    }
   };
 
   const handleAddToShoppingList = () => {
     const lista = creaListaSpesa(recipe, porzioni);
-    console.log('Lista della spesa:', lista);
-    // TODO: salvare in localStorage
-    alert('Ingredienti aggiunti alla lista della spesa!');
+
+    // Carica lista esistente da localStorage
+    const saved = localStorage.getItem('shoppingList');
+    const existingItems = saved ? JSON.parse(saved) : [];
+
+    // Crea nuovi item con formato completo
+    const newItems = lista.map(item => ({
+      id: `${recipe.id}-${item.ingrediente}-${Date.now()}-${Math.random()}`,
+      ricettaId: recipe.id,
+      ricettaTitolo: recipe.titolo,
+      ingrediente: item.ingrediente,
+      quantita: item.quantita,
+      unita: item.unita,
+      note: item.note,
+      acquistato: false
+    }));
+
+    // Aggiungi alla lista esistente
+    const updatedList = [...existingItems, ...newItems];
+    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
+
+    console.log('✅ Ingredienti aggiunti alla lista della spesa:', newItems);
+
+    // Naviga alla pagina lista spesa
+    navigate('/shopping-list');
   };
 
   return (
@@ -436,6 +497,13 @@ export default function RecipeDetail() {
           <div>
             <Title>{recipe.titolo}</Title>
             <Description>{recipe.descrizione}</Description>
+
+            <RecipeInfoBadges
+              costo={recipe.costoTotaleStimato}
+              stagioni={recipe.stagioneMigliore}
+              occasioni={recipe.occasioniSpeciali}
+              tempoTotale={recipe.tempoTotale}
+            />
 
             <MetaInfo>
               <MetaItem>
@@ -480,7 +548,11 @@ export default function RecipeDetail() {
             <PortionControl>
               <span>Porzioni:</span>
               <PortionButton
-                onClick={() => setPortions(Math.max(1, porzioni - 1))}
+                onClick={() => {
+                  const nuove = Math.max(1, porzioni - 1);
+                  console.log('📉 Riducendo porzioni da', porzioni, 'a', nuove);
+                  setPortions(nuove);
+                }}
                 disabled={porzioni <= 1}
               >
                 −
@@ -488,7 +560,11 @@ export default function RecipeDetail() {
               <span style={{ fontWeight: 'bold', minWidth: '30px', textAlign: 'center' }}>
                 {porzioni}
               </span>
-              <PortionButton onClick={() => setPortions(porzioni + 1)}>
+              <PortionButton onClick={() => {
+                const nuove = porzioni + 1;
+                console.log('📈 Aumentando porzioni da', porzioni, 'a', nuove);
+                setPortions(nuove);
+              }}>
                 +
               </PortionButton>
             </PortionControl>
@@ -496,7 +572,7 @@ export default function RecipeDetail() {
 
           <IngredientsList>
             {ingredientiRicalcolati.map((ing, index) => (
-              <IngredientItem key={index}>
+              <IngredientItem key={`${ing.nome}-${index}-${porzioni}`}>
                 <IngredientName>
                   {ing.nome}
                   {ing.note && <span style={{ fontSize: '12px', color: Colors.testoSecondario }}> ({ing.note})</span>}
@@ -510,7 +586,16 @@ export default function RecipeDetail() {
         </Section>
 
         <Section>
-          <SectionTitle>Procedimento</SectionTitle>
+          <SectionTitle>
+            Procedimento
+            <ActionButton
+              $variant="primary"
+              onClick={() => setShowCookingMode(true)}
+              style={{ fontSize: '14px', padding: '10px 20px' }}
+            >
+              👨‍🍳 Modalità Cooking
+            </ActionButton>
+          </SectionTitle>
           <StepsList>
             {recipe.procedimento.map((step) => (
               <StepItem key={step.numero}>
@@ -562,11 +647,37 @@ export default function RecipeDetail() {
         </VideoSection>
       )}
 
+      {/* ⏱️ TIMER DI COTTURA */}
+      <CookingTimer />
+
+      {/* 🆕 NUOVE SEZIONI INNOVATIVE */}
+      {recipe.storia && <DishHistory storia={recipe.storia} />}
+
+      {recipe.consigliNonna && recipe.consigliNonna.length > 0 && (
+        <GrandmaTips tips={recipe.consigliNonna} />
+      )}
+
+      {recipe.abbinamentoVini && recipe.abbinamentoVini.length > 0 && (
+        <WinePairings wines={recipe.abbinamentoVini} />
+      )}
+
+      {recipe.sostituzioniIngredienti && recipe.sostituzioniIngredienti.length > 0 && (
+        <IngredientSubstitutions sostituzioni={recipe.sostituzioniIngredienti} />
+      )}
+
       <Tags>
         {recipe.tags.map((tag, index) => (
           <Tag key={index}>#{tag}</Tag>
         ))}
       </Tags>
+
+      {/* 👨‍🍳 MODALITÀ COOKING */}
+      {showCookingMode && (
+        <CookingMode
+          steps={recipe.procedimento}
+          onClose={() => setShowCookingMode(false)}
+        />
+      )}
     </Container>
   );
 }

@@ -8,7 +8,9 @@ import {
   DifficoltaRicetta,
   TipoRicetta,
   FiltroAlimentare,
-  RegioneItaliana
+  RegioneItaliana,
+  Stagione,
+  OccasioneSpeciale
 } from '../types';
 
 export const mockRecipes: Ricetta[] = [
@@ -76,7 +78,99 @@ export const mockRecipes: Ricetta[] = [
     tags: ['pasta', 'carbonara', 'romano', 'tradizionale', 'guanciale'],
     visualizzazioni: 15234,
     isPopolari: true,
-    isRicettaDelGiorno: true
+    isRicettaDelGiorno: true,
+
+    // 🍷 NUOVE FEATURE INNOVATIVE
+    abbinamentoVini: [
+      {
+        nome: 'Frascati Superiore',
+        tipo: 'bianco',
+        regione: RegioneItaliana.LAZIO,
+        denominazione: 'Frascati Superiore DOCG',
+        perche: 'Il Frascati bilancia perfettamente la ricchezza della carbonara con la sua freschezza e sapidità. La mineralità del vino pulisce il palato tra un boccone e l\'altro.',
+        temperaturaServizio: '10-12°C'
+      },
+      {
+        nome: 'Trebbiano d\'Abruzzo',
+        tipo: 'bianco',
+        regione: RegioneItaliana.ABRUZZO,
+        perche: 'Vino fresco e sapido che contrasta la grassezza del guanciale mantenendo l\'armonia con il pecorino.',
+        temperaturaServizio: '10-12°C'
+      }
+    ],
+
+    consigliNonna: [
+      {
+        testo: 'Il segreto della carbonara perfetta? SPEGNI IL FUOCO prima di aggiungere le uova! Altrimenti farai una frittata, non una crema.',
+        categoria: 'segreto'
+      },
+      {
+        testo: 'Il guanciale va tagliato a listarelle spesse almeno mezzo centimetro. Troppo sottile diventa secco e perde sapore!',
+        categoria: 'tecnica'
+      },
+      {
+        testo: 'Mia nonna diceva sempre: "La carbonara si fa con i TUORLI, chi mette l\'albume non sa cucinare!" E aveva ragione.',
+        categoria: 'ingrediente'
+      },
+      {
+        testo: 'Se la crema è troppo densa, aggiungi un mestolo di acqua di cottura della pasta. È il trucco dei romani veri!',
+        categoria: 'tecnica'
+      }
+    ],
+
+    storia: {
+      origine: 'La carbonara nasce a Roma negli anni \'40. L\'origine è dibattuta: alcuni dicono dai carbonai (da cui il nome), altri dai soldati americani che mischiavano bacon e uova con la pasta italiana.',
+      curiosita: [
+        'La ricetta "ufficiale" prevede solo guanciale, ma storicamente potrebbe essere nata con il bacon americano durante la Seconda Guerra Mondiale',
+        'A Roma esiste una "guerra" culinaria: panna SI o panna NO? La risposta tradizionale è un netto NO!',
+        'Il 6 aprile si celebra il "Carbonara Day", festa internazionale dedicata a questo piatto'
+      ],
+      variantiRegionali: 'In alcune zone del Lazio si usa anche la pancetta, ma i puristi romani insistono: SOLO guanciale!'
+    },
+
+    stagioneMigliore: [Stagione.TUTTO_ANNO],
+
+    costoTotaleStimato: 8.50,
+
+    occasioniSpeciali: [OccasioneSpeciale.DOMENICA],
+
+    badgeAssociati: [
+      {
+        id: 'master_carbonara',
+        nome: 'Master della Carbonara',
+        descrizione: 'Hai preparato la carbonara perfetta senza fare la frittata!',
+        icona: '🍝'
+      }
+    ],
+
+    skillsRichieste: ['mantecare', 'timing', 'rosolare'],
+
+    sostituzioniIngredienti: [
+      {
+        ingredienteOriginale: 'Guanciale',
+        sostituto: 'Pancetta affumicata',
+        motivo: 'Se non trovi il guanciale, la pancetta affumicata è una valida alternativa. Non sarà "la vera carbonara romana" ma il risultato sarà comunque ottimo!',
+        fattoreMoltiplicazione: 1
+      },
+      {
+        ingredienteOriginale: 'Pecorino Romano',
+        sostituto: 'Parmigiano Reggiano',
+        motivo: 'Il Parmigiano è più dolce e meno sapido del Pecorino, ma funziona bene se non hai il Pecorino. Puoi anche fare un mix 50-50 dei due formaggi.',
+        fattoreMoltiplicazione: 1
+      },
+      {
+        ingredienteOriginale: 'Uova intere',
+        sostituto: 'Solo tuorli (4-5 tuorli)',
+        motivo: 'La ricetta tradizionale usa SOLO i tuorli! Se hai usato uova intere e vuoi migliorare, passa ai soli tuorli per una crema più ricca e vellutata.',
+        fattoreMoltiplicazione: 1.3
+      },
+      {
+        ingredienteOriginale: 'Spaghetti',
+        sostituto: 'Rigatoni o Mezze Maniche',
+        motivo: 'A Roma molti preferiscono i rigatoni per la carbonara: la crema entra dentro la pasta! Prova questa variante, è deliziosa.',
+        fattoreMoltiplicazione: 1
+      }
+    ]
   },
 
   {
@@ -143,7 +237,79 @@ export const mockRecipes: Ricetta[] = [
     autore: 'Pizzaiolo Napoletano',
     tags: ['pizza', 'margherita', 'napoletana', 'lievitato'],
     visualizzazioni: 18934,
-    isPopolari: true
+    isPopolari: true,
+
+    // 🍷 NUOVE FEATURE INNOVATIVE
+    abbinamentoVini: [
+      {
+        nome: 'Falanghina del Sannio',
+        tipo: 'bianco',
+        regione: RegioneItaliana.CAMPANIA,
+        denominazione: 'Falanghina del Sannio DOC',
+        perche: 'La Falanghina è il vino perfetto per la pizza napoletana: fresco, sapido e con note agrumate che esaltano il pomodoro e la mozzarella senza sovrastarli.',
+        temperaturaServizio: '10-12°C'
+      },
+      {
+        nome: 'Gragnano Rosso',
+        tipo: 'rosso',
+        regione: RegioneItaliana.CAMPANIA,
+        denominazione: 'Gragnano DOC',
+        perche: 'Un rosso leggero e leggermente frizzante, tipico della tradizione napoletana. L\'abbinamento classico delle pizzerie storiche di Napoli!',
+        temperaturaServizio: '14-16°C'
+      }
+    ],
+
+    consigliNonna: [
+      {
+        testo: 'La vera pizza napoletana si fa con la mozzarella di bufala DOP! Ma attenzione: va strizzata bene altrimenti la pizza esce acquosa.',
+        categoria: 'ingrediente'
+      },
+      {
+        testo: 'Il segreto dell\'impasto perfetto? L\'acqua deve essere TIEPIDA, mai calda! Altrimenti uccidi il lievito e la pizza non lievita.',
+        categoria: 'tecnica'
+      },
+      {
+        testo: 'Mia nonna pizzaiola mi insegnò: l\'impasto va steso a MANO, mai col mattarello! Il mattarello schiaccia le bolle d\'aria che rendono il cornicione soffice.',
+        categoria: 'segreto'
+      },
+      {
+        testo: 'Il basilico va messo DOPO la cottura, non prima! Altrimenti brucia e diventa amaro.',
+        categoria: 'tecnica'
+      }
+    ],
+
+    storia: {
+      origine: 'La Pizza Margherita nasce a Napoli nel 1889. Il pizzaiolo Raffaele Esposito la creò in onore della Regina Margherita di Savoia, usando i colori della bandiera italiana: rosso (pomodoro), bianco (mozzarella), verde (basilico).',
+      curiosita: [
+        'La storia della Regina Margherita potrebbe essere una leggenda marketing! Alcuni storici sostengono che la pizza con pomodoro e mozzarella esisteva già da decenni.',
+        'La vera Pizza Margherita napoletana è certificata dall\'Associazione Verace Pizza Napoletana (AVPN) con regole rigorosissime: solo forno a legna a 485°C, cottura 60-90 secondi!',
+        'Nel 2017 l\'Arte dei Pizzaiuoli Napoletani è stata dichiarata Patrimonio Immateriale dell\'Umanità UNESCO'
+      ],
+      variantiRegionali: 'A Roma si fa la "pizza romana" con impasto più sottile e croccante. In Liguria usano il pesto al posto del basilico. Ma i napoletani dicono: "Solo a Napoli è vera pizza!"'
+    },
+
+    stagioneMigliore: [Stagione.TUTTO_ANNO],
+
+    costoTotaleStimato: 5.50,
+
+    occasioniSpeciali: [OccasioneSpeciale.DOMENICA, OccasioneSpeciale.FESTA_COMPLEANNO],
+
+    badgeAssociati: [
+      {
+        id: 'pizzaiolo_esperto',
+        nome: 'Pizzaiolo Esperto',
+        descrizione: 'Hai preparato una Pizza Margherita degna di Napoli!',
+        icona: '🍕'
+      },
+      {
+        id: 'maestro_lievitazione',
+        nome: 'Maestro della Lievitazione',
+        descrizione: 'Il tuo impasto è lievitato alla perfezione!',
+        icona: '🫓'
+      }
+    ],
+
+    skillsRichieste: ['impastare', 'lievitazione', 'stendere_impasto', 'gestione_forno']
   },
 
   {
@@ -207,7 +373,92 @@ export const mockRecipes: Ricetta[] = [
     autore: 'Pasticcere Veneto',
     tags: ['tiramisù', 'dolce', 'mascarpone', 'caffè', 'freddo'],
     visualizzazioni: 21453,
-    isPopolari: true
+    isPopolari: true,
+
+    // 🍷 NUOVE FEATURE INNOVATIVE
+    abbinamentoVini: [
+      {
+        nome: 'Moscato d\'Asti',
+        tipo: 'bianco',
+        regione: RegioneItaliana.PIEMONTE,
+        denominazione: 'Moscato d\'Asti DOCG',
+        perche: 'Il Moscato dolce e leggermente frizzante è l\'abbinamento perfetto per il tiramisù: la sua dolcezza aromatica bilancia il cacao amaro e esalta il mascarpone.',
+        temperaturaServizio: '6-8°C'
+      },
+      {
+        nome: 'Recioto di Soave',
+        tipo: 'bianco',
+        regione: RegioneItaliana.VENETO,
+        denominazione: 'Recioto di Soave DOCG',
+        perche: 'Un vino dolce veneto che sposa perfettamente il dolce regionale. Le note mielate e di frutta secca completano l\'esperienza del tiramisù.',
+        temperaturaServizio: '10-12°C'
+      },
+      {
+        nome: 'Marsala Superiore',
+        tipo: 'rosso',
+        regione: RegioneItaliana.SICILIA,
+        denominazione: 'Marsala Superiore DOC',
+        perche: 'Se usi il Marsala nella ricetta, abbinalo anche al bicchiere! Un Marsala dolce crea un\'armonia perfetta con il dolce.',
+        temperaturaServizio: '12-14°C'
+      }
+    ],
+
+    consigliNonna: [
+      {
+        testo: 'Il vero tiramisù si fa con le uova CRUDE! Ma usa solo uova freschissime e di qualità. Se hai dubbi, usa uova pastorizzate.',
+        categoria: 'ingrediente'
+      },
+      {
+        testo: 'Il segreto del caffè perfetto? Deve essere FREDDO e NON zuccherato! Altrimenti i savoiardi si sfaldano e il tiramisù diventa troppo dolce.',
+        categoria: 'tecnica'
+      },
+      {
+        testo: 'Mia nonna pasticcera diceva: "Un secondo nel caffè basta!" I savoiardi devono solo bagnarsi, non inzupparsi. Devono restare un po\' croccanti dentro.',
+        categoria: 'segreto'
+      },
+      {
+        testo: 'Il tiramisù va fatto la sera prima! Più riposa in frigo, più i sapori si amalgamano. Quello del giorno stesso è buono, quello del giorno dopo è DIVINO.',
+        categoria: 'conservazione'
+      },
+      {
+        testo: 'Il cacao in polvere va setacciato sulla superficie con un colino fine. E abbondante! Non essere tirchio col cacao, è quello che fa la differenza!',
+        categoria: 'tecnica'
+      }
+    ],
+
+    storia: {
+      origine: 'Il tiramisù nasce in Veneto negli anni \'60-70, ma l\'origine esatta è dibattuta. Treviso e Siena si contendono la paternità. La ricetta diventa famosa negli anni \'80 conquistando il mondo.',
+      curiosita: [
+        'Il nome "Tiramisù" significa letteralmente "tirami su", riferito all\'effetto energizzante del caffè e delle uova',
+        'La storia romantica vuole che sia stato inventato per "tirare su" i soldati feriti, ma è probabilmente una leggenda',
+        'Esiste una versione friulana chiamata "Tirimi-sù" che sostituisce il caffè con il vino bianco!',
+        'In Toscana rivendicano che il tiramisù derivi dal "dolce Duca di Siena", un dolce mediceo del 1600'
+      ],
+      variantiRegionali: 'Ogni regione ha la sua versione: in Piemonte aggiungono nocciole, in Sicilia pistacchi, in Friuli usano grappa al posto del Marsala. Ma i veneti dicono: "L\'originale è quello col caffè!"'
+    },
+
+    stagioneMigliore: [Stagione.TUTTO_ANNO],
+
+    costoTotaleStimato: 12.00,
+
+    occasioniSpeciali: [OccasioneSpeciale.NATALE, OccasioneSpeciale.CAPODANNO, OccasioneSpeciale.DOMENICA, OccasioneSpeciale.FESTA_COMPLEANNO],
+
+    badgeAssociati: [
+      {
+        id: 'maestro_tiramisu',
+        nome: 'Maestro del Tiramisù',
+        descrizione: 'Hai preparato un tiramisù da pasticceria!',
+        icona: '🍰'
+      },
+      {
+        id: 'montatore_perfetto',
+        nome: 'Montatore Perfetto',
+        descrizione: 'I tuoi albumi a neve sono perfetti!',
+        icona: '🥚'
+      }
+    ],
+
+    skillsRichieste: ['montare_uova', 'assemblaggio_dolci', 'gestione_temperatura']
   },
 
   {

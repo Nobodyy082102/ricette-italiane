@@ -161,53 +161,60 @@ const StatusBadge = styled.div<{ $status: 'idle' | 'running' | 'paused' | 'finis
 `;
 
 export default function CookingTimer() {
-  const [minutes, setMinutes] = useState(0);
-  const [seconds, setSeconds] = useState(0);
-  const [totalSeconds, setTotalSeconds] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [displayTime, setDisplayTime] = useState('00:00');
+  const [status, setStatus] = useState<'idle' | 'running' | 'paused' | 'finished'>('idle');
+
+  // Use refs for timer state to avoid re-renders
+  const totalSecondsRef = useRef(0);
+  const isRunningRef = useRef(false);
   const intervalRef = useRef<number | null>(null);
+  const isMountedRef = useRef(true);
+
+  const formatTime = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  const updateDisplay = useCallback(() => {
+    if (isMountedRef.current) {
+      setDisplayTime(formatTime(totalSecondsRef.current));
+    }
+  }, [formatTime]);
 
   const playAlarm = useCallback(() => {
+    if (!isMountedRef.current) return;
+
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
-      // Primo beep
-      const oscillator1 = audioContext.createOscillator();
-      const gainNode1 = audioContext.createGain();
+      const playBeep = (delay: number) => {
+        setTimeout(() => {
+          if (!isMountedRef.current) {
+            audioContext.close();
+            return;
+          }
 
-      oscillator1.connect(gainNode1);
-      gainNode1.connect(audioContext.destination);
-      oscillator1.frequency.value = 800;
-      oscillator1.type = 'sine';
-      gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
 
-      oscillator1.start(audioContext.currentTime);
-      oscillator1.stop(audioContext.currentTime + 0.3);
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
 
-      // Secondo beep (dopo 400ms) - NUOVO oscillator
-      setTimeout(() => {
-        try {
-          const oscillator2 = audioContext.createOscillator();
-          const gainNode2 = audioContext.createGain();
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
 
-          oscillator2.connect(gainNode2);
-          gainNode2.connect(audioContext.destination);
-          oscillator2.frequency.value = 800;
-          oscillator2.type = 'sine';
-          gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+          if (delay === 400) {
+            setTimeout(() => audioContext.close(), 500);
+          }
+        }, delay);
+      };
 
-          oscillator2.start(audioContext.currentTime);
-          oscillator2.stop(audioContext.currentTime + 0.3);
-
-          // Cleanup: chiudi l'audio context dopo il secondo beep
-          setTimeout(() => {
-            audioContext.close().catch(err => console.log('AudioContext already closed', err));
-          }, 500);
-        } catch (err) {
-          console.error('Error in second beep:', err);
-        }
-      }, 400);
+      playBeep(0);
+      playBeep(400);
 
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('⏰ Timer Scaduto!', {
@@ -220,88 +227,90 @@ export default function CookingTimer() {
     }
   }, []);
 
-  // Effetto per gestire il countdown
+  const tick = useCallback(() => {
+    if (!isMountedRef.current || !isRunningRef.current) return;
+
+    totalSecondsRef.current = Math.max(0, totalSecondsRef.current - 1);
+    updateDisplay();
+
+    if (totalSecondsRef.current === 0) {
+      isRunningRef.current = false;
+      if (isMountedRef.current) {
+        setStatus('finished');
+        playAlarm();
+      }
+    }
+  }, [updateDisplay, playAlarm]);
+
+  // Single effect for the timer - no dependencies on state
   useEffect(() => {
-    if (isRunning && totalSeconds > 0) {
-      intervalRef.current = window.setInterval(() => {
-        setTotalSeconds(prev => Math.max(0, prev - 1));
-      }, 1000);
+    isMountedRef.current = true;
+
+    // Request notification permission on mount
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
 
     return () => {
+      isMountedRef.current = false;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [isRunning, totalSeconds]);
-
-  // Effetto separato per gestire quando il timer raggiunge 0
-  useEffect(() => {
-    if (isRunning && totalSeconds === 0) {
-      setIsRunning(false);
-      playAlarm();
-    }
-  }, [totalSeconds, isRunning, playAlarm]);
-
-  useEffect(() => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    setMinutes(mins);
-    setSeconds(secs);
-  }, [totalSeconds]);
+  }, []);
 
   const handleStart = () => {
-    if (totalSeconds > 0) {
-      setIsRunning(true);
-      setIsPaused(false);
+    if (totalSecondsRef.current > 0 && !isRunningRef.current) {
+      isRunningRef.current = true;
+      setStatus('running');
+
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      // Start new interval
+      intervalRef.current = window.setInterval(tick, 1000);
     }
   };
 
   const handlePause = () => {
-    setIsRunning(false);
-    setIsPaused(true);
+    if (isRunningRef.current) {
+      isRunningRef.current = false;
+      setStatus('paused');
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
   };
 
   const handleStop = () => {
-    setIsRunning(false);
-    setIsPaused(false);
-    setTotalSeconds(0);
+    isRunningRef.current = false;
+    totalSecondsRef.current = 0;
+    setStatus('idle');
+    updateDisplay();
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   };
 
   const handleQuickTime = (mins: number) => {
-    setTotalSeconds(mins * 60);
-    setIsRunning(false);
-    setIsPaused(false);
+    handleStop();
+    totalSecondsRef.current = mins * 60;
+    updateDisplay();
   };
 
   const handleCustomTime = () => {
     const mins = parseInt((document.getElementById('custom-minutes') as HTMLInputElement)?.value || '0');
     const secs = parseInt((document.getElementById('custom-seconds') as HTMLInputElement)?.value || '0');
-    setTotalSeconds(mins * 60 + secs);
-    setIsRunning(false);
-    setIsPaused(false);
-  };
-
-  const requestNotificationPermission = () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  };
-
-  useEffect(() => {
-    requestNotificationPermission();
-  }, []);
-
-  const formatTime = (mins: number, secs: number) => {
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getStatus = (): 'idle' | 'running' | 'paused' | 'finished' => {
-    if (totalSeconds === 0 && !isRunning && isPaused) return 'finished';
-    if (isRunning) return 'running';
-    if (isPaused) return 'paused';
-    return 'idle';
+    handleStop();
+    totalSecondsRef.current = mins * 60 + secs;
+    updateDisplay();
   };
 
   return (
@@ -312,14 +321,14 @@ export default function CookingTimer() {
       </Title>
 
       <TimerDisplay>
-        <TimeText $isActive={isRunning}>
-          {formatTime(minutes, seconds)}
+        <TimeText $isActive={status === 'running'}>
+          {displayTime}
         </TimeText>
-        <StatusBadge $status={getStatus()}>
-          {getStatus() === 'running' && '⏱️ In esecuzione'}
-          {getStatus() === 'paused' && '⏸️ In pausa'}
-          {getStatus() === 'finished' && '✅ Completato'}
-          {getStatus() === 'idle' && '💤 Pronto'}
+        <StatusBadge $status={status}>
+          {status === 'running' && '⏱️ In esecuzione'}
+          {status === 'paused' && '⏸️ In pausa'}
+          {status === 'finished' && '✅ Completato'}
+          {status === 'idle' && '💤 Pronto'}
         </StatusBadge>
       </TimerDisplay>
 
@@ -327,16 +336,16 @@ export default function CookingTimer() {
         <ControlButton
           $variant="start"
           onClick={handleStart}
-          disabled={isRunning || totalSeconds === 0}
+          disabled={status === 'running' || totalSecondsRef.current === 0}
         >
           <FaPlay />
-          {isPaused ? 'Riprendi' : 'Avvia'}
+          {status === 'paused' ? 'Riprendi' : 'Avvia'}
         </ControlButton>
 
         <ControlButton
           $variant="pause"
           onClick={handlePause}
-          disabled={!isRunning}
+          disabled={status !== 'running'}
         >
           <FaPause />
           Pausa
@@ -345,7 +354,7 @@ export default function CookingTimer() {
         <ControlButton
           $variant="stop"
           onClick={handleStop}
-          disabled={totalSeconds === 0 && !isRunning}
+          disabled={totalSecondsRef.current === 0 && status === 'idle'}
         >
           <FaStop />
           Stop

@@ -23,7 +23,7 @@ const Content = styled.main`
 
 function App() {
   return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <Router basename="/ricette-italiane" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AppContainer>
         <Content>
           <Routes>

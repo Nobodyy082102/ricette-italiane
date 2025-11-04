@@ -79,12 +79,19 @@ const RecipeMeta = styled.div`
 export default function Favorites() {
   const navigate = useNavigate();
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [ricetteZeroSprechi, setRicetteZeroSprechi] = useState<any[]>([]);
 
   useEffect(() => {
-    // Carica preferiti da localStorage
+    // Carica preferiti da localStorage (IDs delle ricette normali)
     const saved = localStorage.getItem('favorites');
     if (saved) {
       setFavoriteIds(JSON.parse(saved));
+    }
+
+    // Carica ricette salvate da Zero Sprechi (oggetti completi)
+    const ricetteSalvate = localStorage.getItem('ricetteFavorite');
+    if (ricetteSalvate) {
+      setRicetteZeroSprechi(JSON.parse(ricetteSalvate));
     }
   }, []);
 
@@ -92,7 +99,9 @@ export default function Favorites() {
     .map(id => getRecipeById(id))
     .filter(recipe => recipe !== undefined);
 
-  if (favoriteRecipes.length === 0) {
+  const tutteLeRicette = [...favoriteRecipes, ...ricetteZeroSprechi];
+
+  if (tutteLeRicette.length === 0) {
     return (
       <Container>
         <Title>❤️ I Miei Preferiti</Title>
@@ -109,22 +118,39 @@ export default function Favorites() {
     <Container>
       <Title>❤️ I Miei Preferiti</Title>
       <div style={{ marginBottom: '20px', color: Colors.testoSecondario }}>
-        Hai <strong>{favoriteRecipes.length}</strong> ricette preferite
+        Hai <strong>{tutteLeRicette.length}</strong> ricette preferite
       </div>
 
       <RecipeGrid>
-        {favoriteRecipes.map(recipe => recipe && (
-          <RecipeCard key={recipe.id} onClick={() => navigate(`/recipe/${recipe.id}`)}>
-            <RecipeImage>{recipe.fotoUrl}</RecipeImage>
+        {tutteLeRicette.map((recipe, idx) => recipe && (
+          <RecipeCard
+            key={recipe.id || `zero-sprechi-${idx}`}
+            onClick={() => {
+              if (recipe.id) {
+                navigate(`/recipe/${recipe.id}`);
+              } else {
+                alert(`📖 ${recipe.titolo}\n\n${recipe.descrizione}\n\n⏱️ ${recipe.tempo} min\n📊 ${recipe.difficolta}\n\n✓ Salvata da: ${recipe.origine || 'Zero Sprechi'}`);
+              }
+            }}
+          >
+            <RecipeImage>
+              {recipe.fotoUrl || '🍝'}
+            </RecipeImage>
             <RecipeInfo>
               <RecipeTitle>{recipe.titolo}</RecipeTitle>
               <RecipeMeta>
                 <span>
-                  <FaClock /> {formattaTempo(recipe.tempoTotale)}
+                  <FaClock /> {recipe.tempoTotale ? formattaTempo(recipe.tempoTotale) : `${recipe.tempo} min`}
                 </span>
-                <span>
-                  <FaStar style={{ color: Colors.warning }} /> {recipe.valutazioneMedia.toFixed(1)}
-                </span>
+                {recipe.valutazioneMedia ? (
+                  <span>
+                    <FaStar style={{ color: Colors.warning }} /> {recipe.valutazioneMedia.toFixed(1)}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: Colors.verdePrimario }}>
+                    {recipe.origine || 'Zero Sprechi'}
+                  </span>
+                )}
               </RecipeMeta>
             </RecipeInfo>
           </RecipeCard>

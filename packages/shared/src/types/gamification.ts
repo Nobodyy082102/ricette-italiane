@@ -1,64 +1,131 @@
 /**
- * Tipi per il sistema di gamification
+ * Types per il sistema di Gamification
  */
 
-export enum LivelloUtente {
-  PRINCIPIANTE = 'principiante',
-  CUOCO_CASALINGO = 'cuoco_casalingo',
-  CHEF_AMATORIALE = 'chef_amatoriale',
-  MAESTRO_DI_CUCINA = 'maestro_di_cucina',
-  NONNA_CERTIFICATA = 'nonna_certificata'
+export enum LivelloCulinario {
+  APPRENDISTA = 'apprendista',
+  CUOCO = 'cuoco',
+  CHEF = 'chef',
+  MAESTRO = 'maestro',
+  GRAN_MAESTRO = 'gran_maestro'
+}
+
+export enum TipoBadge {
+  REGIONALE = 'regionale', // Badge per regioni
+  TECNICA = 'tecnica', // Badge per tecniche culinarie
+  TIPO_PIATTO = 'tipo_piatto', // Badge per tipi di piatti
+  SFIDA = 'sfida', // Badge per completamento sfide
+  MAESTRIA = 'maestria', // Badge per raggiungimento obiettivi
+  SPECIALE = 'speciale' // Badge evento speciale
+}
+
+export enum StatoSfida {
+  ATTIVA = 'attiva',
+  COMPLETATA = 'completata',
+  SCADUTA = 'scaduta',
+  NON_INIZIATA = 'non_iniziata'
 }
 
 export interface Badge {
   id: string;
   nome: string;
   descrizione: string;
-  icona: string; // emoji
-  categoria: 'ricette' | 'regioni' | 'difficolta' | 'streak' | 'sociale' | 'speciale';
-  requisito: string; // es: "Cucina 5 ricette siciliane"
-  sbloccato: boolean;
-  dataSblocco?: Date;
+  icona: string; // emoji o URL
+  tipo: TipoBadge;
+  rarità: 'comune' | 'raro' | 'epico' | 'leggendario';
+  puntiXP: number; // punti esperienza per sbloccare
+  requisiti: string[]; // es: ["Cucina 5 ricette siciliane", "Raggiunge livello Cuoco"]
+  dataOttenimento?: Date;
+  isOttenuto: boolean;
 }
 
-export interface Achievement {
+export interface Sfida {
   id: string;
   titolo: string;
   descrizione: string;
-  punti: number;
-  progresso: number; // 0-100
-  completato: boolean;
+  tipo: 'giornaliera' | 'settimanale' | 'mensile' | 'speciale';
+  obiettivo: string; // es: "Cucina 3 ricette con melanzane"
+  progressoCorrente: number;
+  progressoTotale: number;
+  ricompensa: {
+    puntiXP: number;
+    badge?: Badge;
+    titolo?: string; // titolo speciale sbloccato
+  };
+  dataInizio: Date;
+  dataFine: Date;
+  stato: StatoSfida;
+  iconaSfida: string;
 }
 
-export interface ProgressoUtente {
-  livello: LivelloUtente;
-  puntiEsperienza: number;
-  puntiPerProssimoLivello: number;
-  ricetteCucinate: number;
-  regioniEsplorate: Set<string>; // ID regioni
-  badge: Badge[];
-  streakGiorni: number; // giorni consecutivi
-  ultimaAttivita: Date;
+export interface ProfiloGiocatore {
+  userId: string;
+  userName: string;
+  userPhotoUrl?: string;
+  livelloCorrente: LivelloCulinario;
+  puntiXP: number; // punti esperienza totali
+  puntiXPPerLivelloSuccessivo: number;
+  numeroRicetteCucinate: number;
+  numeroRicettePreferite: number;
+  badgeOttenuti: Badge[];
+  sfideCompletate: Sfida[];
+  sfideAttive: Sfida[];
+  titoli: string[]; // titoli speciali ottenuti
+  titoloAttivo?: string; // titolo mostrato nel profilo
+  regioniCompletate: string[]; // regioni con almeno una ricetta cucinata
+  progressoRegioni: { [regione: string]: number }; // numero ricette per regione
+  statistiche: {
+    ricetteFaciliCompletate: number;
+    ricetteMediaCompletate: number;
+    ricetteDifficiliCompletate: number;
+    tipoPiattoPreferito: string;
+    regionePreferita: string;
+    streakGiorni: number; // giorni consecutivi di attività
+    massimoStreak: number;
+    tempoTotaleCucina: number; // minuti totali passati a cucinare
+  };
 }
 
-export interface StatisticheUtente {
-  totaleRicetteCucinate: number;
-  ricettePiuCucinate: { ricettaId: string; volte: number }[];
-  regionePreferita: string;
-  difficoltaMedia: number;
-  tempoTotaleCucina: number; // minuti
-  ricetteQuestoMese: number;
-  ricetteQuestoAnno: number;
-  categoriaPreferita: string; // primi, secondi, dolci, ecc
+export interface ClassificaGiocatore {
+  posizione: number;
+  userId: string;
+  userName: string;
+  userPhotoUrl?: string;
+  livello: LivelloCulinario;
+  puntiXP: number;
+  numeroRicetteCucinate: number;
+  badgeCount: number;
+  titoloAttivo?: string;
 }
 
-export interface SfidaSettimanale {
+export interface Quest {
   id: string;
   titolo: string;
   descrizione: string;
-  icona: string;
-  scadenza: Date;
-  puntiRicompensa: number;
-  completata: boolean;
-  progresso?: number; // 0-100
+  tipo: 'giornaliera' | 'settimanale' | 'storia' | 'nascosta';
+  passi: {
+    numero: number;
+    descrizione: string;
+    completato: boolean;
+  }[];
+  ricompensaFinale: {
+    puntiXP: number;
+    badge?: Badge;
+    ricettaSpecialeSbloccata?: string; // ID ricetta segreta
+  };
+  progressoPercentuale: number;
+  isCompletata: boolean;
+}
+
+export interface EventoSpeciale {
+  id: string;
+  nome: string;
+  descrizione: string;
+  dataInizio: Date;
+  dataFine: Date;
+  tema: string; // es: "Mese della Pasta", "Estate Siciliana"
+  sfideEsclusive: Sfida[];
+  badgeEsclusivi: Badge[];
+  classificaEvento: ClassificaGiocatore[];
+  ricompenseSpeciali: string[];
 }
